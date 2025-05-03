@@ -49,6 +49,15 @@
     - "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/*.js"
     - "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/package*.json"
 
+- name: Wait for app to be up (health check)
+  uri:
+    url: http://localhost:3000/
+    status_code: 200
+  register: health_check
+  retries: 5
+  delay: 3
+  until: health_check.status == 200
+
 - name: Switch current symlink to green
   file:
     src: "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/green"

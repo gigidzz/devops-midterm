@@ -1,0 +1,7 @@
+---
+- name: Setup Node.js Application Environment
+  hosts: local
+  connection: local
+  become: false
+  roles:
+    - node_app

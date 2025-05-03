@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Health check script for Node.js application
+# Created by Ansible
+
+LOG_FILE="/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/health_check.log"
+ENDPOINT="http://localhost:3000/health"
+
+echo "$(date): Running health check..." >> "$LOG_FILE"
+
+# Check if curl is installed
+if ! command -v curl &> /dev/null; then
+    echo "$(date): ERROR - curl is not installed. Cannot perform health check." >> "$LOG_FILE"
+    exit 1
+fi
+
+# Attempt to connect to the health endpoint
+RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $ENDPOINT)
+
+if [ "$RESPONSE" -eq 200 ]; then
+    echo "$(date): Health check SUCCESS - Application is running properly (status code: $RESPONSE)" >> "$LOG_FILE"
+    exit 0
+else
+    echo "$(date): Health check FAILED - Application may be down (status code: $RESPONSE)" >> "$LOG_FILE"
+    exit 1
+fi

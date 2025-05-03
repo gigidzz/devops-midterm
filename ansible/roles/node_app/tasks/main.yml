@@ -1,0 +1,57 @@
+---
+- name: Ensure project directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/node_modules"
+    - "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/public"
+    - "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/views"
+    - "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/prod_deploy"
+
+- name: Check if Node.js is installed
+  command: node --version
+  register: node_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Print Node.js installation message
+  debug:
+    msg: "Node.js is already installed: {{ node_check.stdout }}"
+  when: node_check.rc == 0
+
+- name: Print Node.js missing message
+  debug:
+    msg: "Node.js is not installed. Please install Node.js manually as it's outside Ansible's scope in this playbook."
+  when: node_check.rc != 0
+
+- name: Install project dependencies
+  command: npm install
+  args:
+    chdir: "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM"
+  register: npm_result
+  changed_when: "'added' in npm_result.stdout"
+  ignore_errors: true
+
+- name: Create blue-green deployment folders
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/blue"
+    - "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/green"
+
+- name: Deploy project files to green environment
+  copy:
+    src: "{{ item }}"
+    dest: "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/green/"
+  with_fileglob:
+    - "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/*.js"
+    - "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/package*.json"
+
+- name: Switch current symlink to green
+  file:
+    src: "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/green"
+    dest: "/mnt/c/Users/admin/Desktop/DEVOPS-MIDTERM/current"
+    state: link
+    force: true
